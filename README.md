@@ -8,3 +8,25 @@
 - `www/` がアプリ本体。ブラウザで `www/index.html` を開けばそのまま動く。
 - APKはGitHubにpushすると Actions が自動で作る(Actions → 最新の実行 → Artifacts → shift-techo-apk)。
 - ローカルで作る場合: JDK 17以上 + Android SDK を入れて `npx cap sync android && cd android && ./gradlew assembleDebug`。
+
+## グループ共有(Firebase)の設定
+1. https://console.firebase.google.com でプロジェクトを作成
+2. 「ウェブアプリを追加」→ firebaseConfig をコピーし、アプリの「みんな」タブに貼り付け
+3. Authentication → Sign-in method → 「匿名」を有効化
+4. Firestore Database を作成し、ルールを以下に置き換え
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /groups/{code} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      match /members/{uid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
+```

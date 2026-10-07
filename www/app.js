@@ -493,8 +493,8 @@ $('#workForm').onsubmit=e=>{
   w.closingDay=$('#wClose').value; w.payDay=$('#wPay').value; w.payMonthOffset=Number($('#wPayMonth').value);
   w.nightRate=Number($('#wNight').value); w.nightStart=Number($('#wNightS').value); w.nightEnd=Number($('#wNightE').value);
   w.otRate=Number($('#wOt').value); w.otAfterHours=Number($('#wOtAfter').value); w.breakMin=Number($('#wBreak').value)||0; w.round=Number($('#wRound').value)||1; w.target=Number($('#wTarget').value)||0;
-  w.wageHistory=[...$('#wWageHist .histrow')].map(r=>({from:r.querySelector('.hFrom').value, wage:Number(r.querySelector('.hWage').value)})).filter(h=>h.from&&h.wage>0);
-  w.patterns=[...$('#wPatterns .patrow')].map(r=>({name:r.querySelector('.pName').value.trim()||'シフト', start:r.querySelector('.pS').value, end:r.querySelector('.pE').value, breakMin:r.querySelector('.pB').value===''?undefined:Number(r.querySelector('.pB').value)})).filter(p=>p.start&&p.end);
+  w.wageHistory=[...$$('#wWageHist .histrow')].map(r=>({from:r.querySelector('.hFrom').value, wage:Number(r.querySelector('.hWage').value)})).filter(h=>h.from&&h.wage>0);
+  w.patterns=[...$$('#wPatterns .patrow')].map(r=>({name:r.querySelector('.pName').value.trim()||'シフト', start:r.querySelector('.pS').value, end:r.querySelector('.pE').value, breakMin:r.querySelector('.pB').value===''?undefined:Number(r.querySelector('.pB').value)})).filter(p=>p.start&&p.end);
   if(!editingW) state.workplaces.push(w);
   save(); $('#workDlg').classList.add('hidden'); render(); toast('保存しました');
   if (state.workplaces.length===1 && !state.shifts.length) { switchView('cal'); setTimeout(()=>toast('カレンダーの日付をタップしてシフトを入れましょう'),400); }

@@ -34,8 +34,13 @@
 
   <!-- 給料 -->
   <section id="view-pay" class="view">
+    <div id="chartBox"></div>
     <div id="payContent"></div>
+    <div class="card"><h2>年収の壁 診断</h2><p class="muted">4つの質問で、あなたに関係する壁と「あと何時間働けるか」を出します。</p><button class="primary wide" id="taxOpen">診断する</button></div>
   </section>
+
+  <!-- みんな -->
+  <section id="view-group" class="view"><div id="groupBox"></div></section>
 
   <!-- 勤務先 -->
   <section id="view-work" class="view">
@@ -60,9 +65,11 @@
     </div>
     <div class="card">
       <h2>通知</h2>
-      <label class="row"><input type="checkbox" id="setNotify"> 前日の夜に明日のシフトを通知</label>
+      <label class="row"><input type="checkbox" id="setNotify"> 前日に明日のシフトを通知</label>
+      <label>通知する時刻<select id="setNotifyHour"></select></label>
+      <label class="row"><input type="checkbox" id="setNotifyPay"> 給料日の朝に通知</label>
       <label class="row"><input type="checkbox" id="setHolidays" checked> 祝日を表示</label>
-      <p class="muted">通知はアプリを開いたときに明日のシフトをお知らせします。</p>
+      <p class="muted" id="notifNote"></p>
     </div>
     <div class="card">
       <h2>バックアップ</h2>
@@ -80,13 +87,14 @@
       <h2>データ</h2>
       <button id="resetAll" class="danger">すべて削除</button>
     </div>
-    <p class="muted center">シフト手帳 v1.1 ／ 広告なし・データは端末内のみ</p>
+    <p class="muted center">シフト手帳 v1.2 ／ 広告なし・データは端末内のみ</p>
   </section>
 </main>
 
 <nav class="tabs">
   <button data-view="cal" class="active">📅<span>カレンダー</span></button>
   <button data-view="pay">💴<span>給料</span></button>
+  <button data-view="group">👥<span>みんな</span></button>
   <button data-view="work">🏪<span>勤務先</span></button>
   <button data-view="set">⚙️<span>設定</span></button>
 </nav>
@@ -141,6 +149,9 @@
     </form>
   </div>
 </div>
+
+<!-- 壁の診断 -->
+<div id="taxDlg" class="sheet hidden"><div class="sheet-inner"><div class="sheet-head"><h3>年収の壁 診断</h3><button class="iconbtn" id="taxClose">✕</button></div><div id="taxBody"></div></div></div>
 
 <!-- 共有 -->
 <div id="shareDlg" class="sheet hidden">
@@ -208,5 +219,6 @@
 
 <div id="toast" class="toast hidden"></div>
 <script src="app.js"></script>
+<script src="features.js"></script>
 </body>
 </html>
