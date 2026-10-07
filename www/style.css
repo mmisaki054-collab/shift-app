@@ -159,3 +159,8 @@ textarea{width:100%;font-size:13px;padding:8px;border:1px solid var(--line);bord
 .grow-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}.grow-row i{width:8px;height:8px;border-radius:50%;flex:none}
 
 .note{font-size:12px;color:var(--warn);background:rgba(232,163,0,.1);border-radius:8px;padding:6px 8px;margin:6px 0 0}
+
+.updatebar{background:#2f6fed;color:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:13px;display:flex;align-items:center;gap:8px}
+.updatebar.hidden{display:none}
+.updatebar b{flex:1}
+.updatebar a{background:#fff;color:#2f6fed;border-radius:999px;padding:6px 12px;text-decoration:none;font-weight:700;white-space:nowrap}

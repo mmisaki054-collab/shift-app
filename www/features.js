@@ -210,6 +210,22 @@ function renderGroup(){
   if(!unsub) listen(); else renderMembers();
 }
 
+/* ================= 更新チェック ================= */
+const APP_VERSION='1.3';
+async function checkUpdate(){
+  try{
+    const r=await fetch('https://mmisaki054-collab.github.io/shift-app/app/version.json?t='+Date.now(), {cache:'no-store'}); if(!r.ok) return;
+    const j=await r.json(); if(!j.version || j.version===APP_VERSION) return;
+    const cmp=j.version.split('.').map(Number), me=APP_VERSION.split('.').map(Number);
+    let newer=false; for(let i=0;i<Math.max(cmp.length,me.length);i++){ const a=cmp[i]||0,b=me[i]||0; if(a>b){newer=true;break;} if(a<b) break; }
+    if(!newer) return;
+    const bar=$('#updateBar'); if(!bar) return;
+    bar.innerHTML='<b>新しい版 v'+esc(j.version)+' があります'+(j.note?'：'+esc(j.note):'')+'</b><a href="'+esc(j.apk||j.page)+'" target="_blank" rel="noopener">更新</a>';
+    bar.classList.remove('hidden');
+  }catch(e){}
+}
+checkUpdate();
+
 /* ================= hooks ================= */
 SN.onRender.push(()=>{ renderChart(); celebrate(); });
 renderChart(); celebrate(); renderGroup(); scheduleNotifications();
