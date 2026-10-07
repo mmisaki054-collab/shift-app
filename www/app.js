@@ -3,6 +3,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
+const EV_COLORS = ['#8a8f9e','#ff8fab','#ffb347','#7bd389','#6fb7ff','#b48cff','#ffd166','#4ecdc4'];
 const COLORS = ['#2f6fed','#e0433a','#1fa864','#e8a300','#8e44ad','#16a085','#e67e22','#ff5c8a','#607d8b','#795548'];
 const KEY = 'shiftnote.v1';
 const DOW = '日月火水木金土';
@@ -23,6 +24,7 @@ let cur = new Date(); cur.setDate(1);
 let quickPattern = null;   // {wid, pat}
 let bulkDows = new Set();
 let undoSnap = null;
+let selDate = null;
 
 function load(){
   let s = null;
@@ -31,7 +33,7 @@ function load(){
   s.events ||= []; s.settings ||= {}; s.settings.holidays ??= true; s.settings.includeTentative ??= true;
   return s;
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); (window.SN?.onSave||[]).forEach(f=>{ try{ f(); }catch(e){ console.warn(e); } }); }
 function snapshot(){ undoSnap = JSON.stringify({shifts:state.shifts, events:state.events}); }
 function toast(msg, undo){
   const t=$('#toast'); t.innerHTML = esc(msg) + (undo ? '<button id="undoBtn">元に戻す</button>' : '');
@@ -154,6 +156,7 @@ function render(){
   const y = cur.getFullYear(), m = cur.getMonth()+1;
   $('#monthTitle').textContent = `${y}年${m}月`;
   renderCalendar(); renderPay(); renderWork(); renderSettings();
+  (window.SN?.onRender||[]).forEach(f=>{ try{ f(); }catch(e){ console.warn(e); } });
 }
 
 function renderCalendar(){
@@ -215,7 +218,7 @@ function renderCalendar(){
   cells.forEach(({d,other})=>{
     const ds = ymd(d), dow = d.getDay(), hn = hol[ds];
     const el = document.createElement('div');
-    el.className = 'day' + (other?' other':'') + (ds===today?' today':'') + (dow===0?' sun':dow===6?' sat':'') + (hn?' holiday':'');
+    el.dataset.ds = ds; el.className = 'day' + (other?' other':'') + (ds===selDate?' sel':'') + (ds===today?' today':'') + (dow===0?' sun':dow===6?' sat':'') + (hn?' holiday':'');
     let html = `<div class="n">${d.getDate()}</div>` + (hn?`<div class="hn">${hn}</div>`:'');
     let dayPay = 0;
     shiftsOn(ds).forEach(s=>{
@@ -223,7 +226,7 @@ function renderCalendar(){
       const c = calcShift(s,w); if (counted(s)) dayPay += c.pay;
       html += `<span class="chip${s.tentative?' tent':''}" style="background:${w.color}">${shortT(s.start)}-${shortT(s.end)}${s.memo?`<small>${esc(s.memo)}</small>`:''}</span>`;
     });
-    eventsOn(ds).forEach(e=>{ html += `<span class="chip ev">${e.allDay?'':shortT(e.start)+' '}${esc(e.title)}</span>`; });
+    eventsOn(ds).forEach(e=>{ html += `<span class="chip ev" style="background:${e.color||'#8a8f9e'}">${e.allDay?'':shortT(e.start)+' '}${esc(e.title)}</span>`; });
     if (dayPay) html += `<span class="yen">${yen(dayPay)}</span>`;
     el.innerHTML = html;
     el.onclick = () => {
@@ -234,6 +237,7 @@ function renderCalendar(){
     };
     cal.appendChild(el);
   });
+  if (selDate) { const inMonth = selDate.slice(0,7)===`${y}-${pad(m+1)}`; if (inMonth) openSheet(selDate, true); else closeSheet(); }
 }
 function copyPrevMonth(){
   const y=cur.getFullYear(), m=cur.getMonth();
@@ -249,12 +253,13 @@ function copyPrevMonth(){
 }
 
 /* ---------- day sheet ---------- */
-function openSheet(ds){
+function openSheet(ds, keep){
+  keep = keep || selDate===ds; selDate = ds;
   const d = parseD(ds);
   const hn = state.settings.holidays ? holidays(d.getFullYear())[ds] : null;
   $('#sheetTitle').textContent = `${d.getMonth()+1}月${d.getDate()}日(${DOW[d.getDay()]})${hn?' '+hn:''}`;
   const body = $('#sheetBody'); body.innerHTML='';
-  if (!state.workplaces.length){ body.innerHTML = `<div class="empty">まず勤務先を登録してください</div><button class="primary wide" id="goWork">勤務先を追加</button>`; $('#goWork').onclick=()=>{closeSheet();switchView('work');openWorkDlg();}; $('#sheet').classList.remove('hidden'); return; }
+  if (!state.workplaces.length){ body.innerHTML = `<div class="empty">まず勤務先を登録してください</div><button class="primary wide" id="goWork">勤務先を追加</button>`; $('#goWork').onclick=()=>{closeSheet();switchView('work');openWorkDlg();}; $('#dayPanel').classList.remove('hidden'); $$('.day').forEach(d=>d.classList.toggle('sel', d.dataset.ds===ds)); if(!keep) $('#dayPanel').scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
   const list = shiftsOn(ds), evs = eventsOn(ds);
   list.forEach(s=>{
     const w = wp(s.wid); if(!w) return; const c = calcShift(s,w);
@@ -265,7 +270,7 @@ function openSheet(ds){
   });
   evs.forEach(e=>{
     const el = document.createElement('div'); el.className='shift-item';
-    el.innerHTML = `<div class="bar" style="background:#8a8f9e"></div><div class="t"><b>${e.allDay?'終日':e.start+'〜'+e.end}</b> ${esc(e.title)}<small>${esc(e.memo||'予定')}</small></div>`;
+    el.innerHTML = `<div class="bar" style="background:${e.color||'#8a8f9e'}"></div><div class="t"><b>${e.allDay?'終日':e.start+'〜'+e.end}</b> ${esc(e.title)}<small>${esc(e.memo||'予定')}</small></div>`;
     el.onclick = () => openEvent(ds, e);
     body.appendChild(el);
   });
@@ -281,9 +286,9 @@ function openSheet(ds){
   const add = document.createElement('button'); add.className='primary'; add.textContent='＋ シフト'; add.onclick=()=>openEdit(ds,null);
   const ev = document.createElement('button'); ev.textContent='＋ 予定(休み・用事)'; ev.onclick=()=>openEvent(ds,null);
   row.appendChild(add); row.appendChild(ev); body.appendChild(row);
-  $('#sheet').classList.remove('hidden');
+  $('#dayPanel').classList.remove('hidden'); $$('.day').forEach(d=>d.classList.toggle('sel', d.dataset.ds===ds)); if(!keep) $('#dayPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function closeSheet(){ $('#sheet').classList.add('hidden'); }
+function closeSheet(){ selDate=null; $('#dayPanel').classList.add('hidden'); $$('.day.sel').forEach(d=>d.classList.remove('sel')); }
 
 /* ---------- shift edit ---------- */
 function openEdit(ds, s){
@@ -328,7 +333,7 @@ $('#editForm').onsubmit = e => {
 $('#eDelete').onclick = ()=>{ const id=$('#eId').value; snapshot(); state.shifts = state.shifts.filter(x=>x.id!==id); save(); $('#editDlg').classList.add('hidden'); openSheet($('#eDate').value); renderCalendar(); renderPay(); toast('削除しました', true); };
 $('#editClose').onclick = ()=>$('#editDlg').classList.add('hidden');
 $('#sheetClose').onclick = closeSheet;
-['sheet','editDlg','eventDlg','workDlg','shareDlg'].forEach(id=>$('#'+id).onclick = e=>{ if(e.target.id===id) $('#'+id).classList.add('hidden'); });
+['editDlg','eventDlg','workDlg','shareDlg'].forEach(id=>$('#'+id).onclick = e=>{ if(e.target.id===id) $('#'+id).classList.add('hidden'); });
 
 /* ---------- event edit ---------- */
 function openEvent(ds, ev){
@@ -336,14 +341,16 @@ function openEvent(ds, ev){
   $('#vId').value = ev?ev.id:''; $('#vDate').value = ds;
   $('#vTitle').value = ev?ev.title:''; $('#vAllDay').checked = ev ? !!ev.allDay : true;
   $('#vStart').value = ev?.start||'10:00'; $('#vEnd').value = ev?.end||'12:00'; $('#vMemo').value = ev?.memo||'';
-  $('#vTimes').style.display = $('#vAllDay').checked ? 'none' : '';
+  setEvKind($('#vAllDay').checked?'all':'time');
+  const col = ev?.color||EV_COLORS[0]; const cb=$('#vColors'); cb.innerHTML=''; EV_COLORS.forEach(c=>{ const sp=document.createElement('span'); sp.style.background=c; sp.dataset.c=c; if(c===col) sp.classList.add('on'); sp.onclick=()=>{ cb.querySelectorAll('span').forEach(x=>x.classList.remove('on')); sp.classList.add('on'); }; cb.appendChild(sp); });
   $('#vDelete').style.display = ev?'':'none';
   $('#eventDlg').classList.remove('hidden'); setTimeout(()=>$('#vTitle').focus(),50);
 }
-$('#vAllDay').onchange = e=>{ $('#vTimes').style.display = e.target.checked?'none':''; };
+function setEvKind(k){ $('#vAllDay').checked = k==='all'; $('#vTimes').style.display = k==='all'?'none':''; $$('#vKind button').forEach(b=>b.classList.toggle('on', b.dataset.k===k)); }
+$$('#vKind button').forEach(b=>b.onclick=()=>setEvKind(b.dataset.k));
 $('#eventForm').onsubmit = e=>{
   e.preventDefault(); snapshot();
-  const ev = { id: $('#vId').value||uid(), date: $('#vDate').value, title: $('#vTitle').value.trim(), allDay: $('#vAllDay').checked, start: $('#vStart').value, end: $('#vEnd').value, memo: $('#vMemo').value.trim() };
+  const ev = { id: $('#vId').value||uid(), date: $('#vDate').value, title: $('#vTitle').value.trim(), allDay: $('#vAllDay').checked, start: $('#vStart').value, end: $('#vEnd').value, memo: $('#vMemo').value.trim(), color: $('#vColors .on')?.dataset.c||EV_COLORS[0] };
   const i = state.events.findIndex(x=>x.id===ev.id); if(i>=0) state.events[i]=ev; else state.events.push(ev);
   save(); $('#eventDlg').classList.add('hidden'); openSheet(ev.date); renderCalendar(); toast('保存しました');
 };
@@ -548,6 +555,7 @@ let tx=null; $('#calendar').addEventListener('touchstart',e=>tx=e.touches[0].cli
 $('#calendar').addEventListener('touchend',e=>{ if(tx==null) return; const dx=e.changedTouches[0].clientX-tx; tx=null; if(Math.abs(dx)>70){ cur.setMonth(cur.getMonth()+(dx<0?1:-1)); render(); } });
 document.addEventListener('backbutton', ()=>{ $$('.sheet:not(.hidden)').forEach(s=>s.classList.add('hidden')); });
 
+window.SN = { get state(){ return state; }, set state(v){ state=v; }, save, render, calcShift, wp, period, payDate, sumRange, toast, yen, ymd, pad, parseD, shiftsOn, fmtH, wageAt, counted, cur:()=>cur, switchView, esc, onSave:[], onRender:[] };
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
 render();
 if (!state.workplaces.length) { switchView('work'); setTimeout(()=>toast('まず勤務先を登録しましょう'), 300); }

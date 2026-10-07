@@ -28,6 +28,7 @@
       <div class="sun">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="sat">土</div>
     </div>
     <div id="calendar" class="calendar"></div>
+    <div id="dayPanel" class="daypanel hidden"><div class="sheet-head"><h3 id="sheetTitle"></h3><button class="iconbtn" id="sheetClose">✕</button></div><div id="sheetBody"></div></div>
     <p class="hint" id="calHint">日付をタップで追加・編集。「まとめて入力」でパターンを選ぶと日付タップだけで連続登録できます。</p>
   </section>
 
@@ -48,11 +49,11 @@
       <h2>目標・年収の壁</h2>
       <label>月の目標金額<input type="number" id="setTarget" inputmode="numeric"></label>
       <label>年収の壁<select id="setWall">
-        <option value="1030000">103万円(所得税)</option>
-        <option value="1060000">106万円(社会保険・大企業)</option>
-        <option value="1230000">123万円(2025年改正・所得税)</option>
-        <option value="1300000">130万円(扶養)</option>
-        <option value="1500000">150万円(配偶者特別控除)</option>
+        <option value="1060000">106万円(社会保険: 従業員51人以上など)</option>
+        <option value="1100000">110万円(住民税の目安)</option>
+        <option value="1300000">130万円(親・配偶者の扶養)</option>
+        <option value="1500000">150万円(19〜22歳の学生: 親の控除)</option>
+        <option value="1600000">160万円(所得税: 2025年改正)</option>
         <option value="0">設定しない</option>
       </select></label>
       <label class="row"><input type="checkbox" id="setIncludeTentative"> 「希望(未確定)」のシフトも給料に含める</label>
@@ -90,16 +91,6 @@
   <button data-view="set">⚙️<span>設定</span></button>
 </nav>
 
-<!-- 日付シート -->
-<div id="sheet" class="sheet hidden">
-  <div class="sheet-inner">
-    <div class="sheet-head">
-      <h3 id="sheetTitle"></h3>
-      <button class="iconbtn" id="sheetClose">✕</button>
-    </div>
-    <div id="sheetBody"></div>
-  </div>
-</div>
 
 <!-- シフト編集 -->
 <div id="editDlg" class="sheet hidden">
@@ -135,7 +126,9 @@
     <form id="eventForm">
       <input type="hidden" id="vId"><input type="hidden" id="vDate">
       <label>予定<input type="text" id="vTitle" required placeholder="例: 友達と映画、休み希望"></label>
-      <label class="row"><input type="checkbox" id="vAllDay" checked> 終日</label>
+      <div class="seg" id="vKind"><button type="button" data-k="all" class="on">終日</button><button type="button" data-k="time">時間を決める</button></div>
+      <input type="checkbox" id="vAllDay" checked hidden>
+      <label>色<div id="vColors" class="colors"></div></label>
       <div class="grid2" id="vTimes" style="display:none">
         <label>開始<input type="time" id="vStart"></label>
         <label>終了<input type="time" id="vEnd"></label>
