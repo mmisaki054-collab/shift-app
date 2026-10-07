@@ -270,7 +270,7 @@ function openSheet(ds, keep){
   });
   evs.forEach(e=>{
     const el = document.createElement('div'); el.className='shift-item';
-    el.innerHTML = `<div class="bar" style="background:${e.color||'#8a8f9e'}"></div><div class="t"><b>${e.allDay?'終日':e.start+'〜'+e.end}</b> ${esc(e.title)}<small>${esc(e.memo||'予定')}</small></div>`;
+    el.innerHTML = `<div class="bar" style="background:${e.color||'#8a8f9e'}"></div><div class="t"><b>${e.allDay?'終日':e.start+'〜'+e.end}</b> ${esc(e.title)}<small>${esc(e.memo||'予定')}${e.remind?' ／ 🔔'+({day9:'当日9時',prev20:'前日20時',m30:'30分前',m60:'1時間前'}[e.remind]||''):''}</small></div>`;
     el.onclick = () => openEvent(ds, e);
     body.appendChild(el);
   });
@@ -342,7 +342,7 @@ function openEvent(ds, ev){
   $('#eventTitle').textContent = ev ? '予定を編集' : '予定を追加';
   $('#vId').value = ev?ev.id:''; $('#vDate').value = ds;
   $('#vTitle').value = ev?ev.title:''; $('#vAllDay').checked = ev ? !!ev.allDay : true;
-  $('#vStart').value = ev?.start||'10:00'; $('#vEnd').value = ev?.end||'12:00'; $('#vMemo').value = ev?.memo||'';
+  $('#vStart').value = ev?.start||'10:00'; $('#vEnd').value = ev?.end||'12:00'; $('#vMemo').value = ev?.memo||''; $('#vRemind').value = ev?.remind||'';
   setEvKind($('#vAllDay').checked?'all':'time');
   const col = ev?.color||EV_COLORS[0]; const cb=$('#vColors'); cb.innerHTML=''; EV_COLORS.forEach(c=>{ const sp=document.createElement('span'); sp.style.background=c; sp.dataset.c=c; if(c===col) sp.classList.add('on'); sp.onclick=()=>{ cb.querySelectorAll('span').forEach(x=>x.classList.remove('on')); sp.classList.add('on'); }; cb.appendChild(sp); });
   $('#vDelete').style.display = ev?'':'none';
@@ -352,7 +352,7 @@ function setEvKind(k){ $('#vAllDay').checked = k==='all'; $('#vTimes').style.dis
 $$('#vKind button').forEach(b=>b.onclick=()=>setEvKind(b.dataset.k));
 $('#eventForm').onsubmit = e=>{
   e.preventDefault(); snapshot();
-  const ev = { id: $('#vId').value||uid(), date: $('#vDate').value, title: $('#vTitle').value.trim(), allDay: $('#vAllDay').checked, start: $('#vStart').value, end: $('#vEnd').value, memo: $('#vMemo').value.trim(), color: $('#vColors .on')?.dataset.c||EV_COLORS[0] };
+  const ev = { id: $('#vId').value||uid(), date: $('#vDate').value, title: $('#vTitle').value.trim(), allDay: $('#vAllDay').checked, start: $('#vStart').value, end: $('#vEnd').value, memo: $('#vMemo').value.trim(), color: $('#vColors .on')?.dataset.c||EV_COLORS[0], remind: $('#vRemind').value||undefined };
   const i = state.events.findIndex(x=>x.id===ev.id); if(i>=0) state.events[i]=ev; else state.events.push(ev);
   save(); $('#eventDlg').classList.add('hidden'); openSheet(ev.date); renderCalendar(); toast('保存しました');
 };
@@ -558,7 +558,8 @@ function checkTomorrow(force){
   const k='shiftnote.notified'; if(!force && localStorage.getItem(k)===ds) return;
   if(!list.length) return;
   localStorage.setItem(k, ds);
-  const msg = list.map(s=>`${wp(s.wid).name} ${s.start}〜${s.end}`).join(' / ');
+  const evs = state.events.filter(e=>e.date===ds && e.remind);
+  const msg = list.map(s=>`${wp(s.wid).name} ${s.start}〜${s.end}`).concat(evs.map(e=>'予定: '+e.title)).join(' / ');
   if('Notification' in window && Notification.permission==='granted') new Notification('明日のシフト', {body: msg}); else toast('明日: '+msg);
 }
 

@@ -88,14 +88,14 @@
       <h2>データ</h2>
       <button id="resetAll" class="danger">すべて削除</button>
     </div>
-    <p class="muted center">シフト手帳 v1.3 ／ 広告なし・データは端末内のみ</p>
+    <p class="muted center">シフト手帳 v1.4 ／ 広告なし・データは端末内のみ</p>
   </section>
 </main>
 
 <nav class="tabs">
   <button data-view="cal" class="active">📅<span>カレンダー</span></button>
   <button data-view="pay">💴<span>給料</span></button>
-  <button data-view="group">👥<span>みんな</span></button>
+
   <button data-view="work">🏪<span>勤務先</span></button>
   <button data-view="set">⚙️<span>設定</span></button>
 </nav>
@@ -142,6 +142,13 @@
         <label>開始<input type="time" id="vStart"></label>
         <label>終了<input type="time" id="vEnd"></label>
       </div>
+      <label>リマインド<select id="vRemind">
+        <option value="">なし</option>
+        <option value="day9">当日の朝9時</option>
+        <option value="prev20">前日の20時</option>
+        <option value="m30">30分前(時間指定のみ)</option>
+        <option value="m60">1時間前(時間指定のみ)</option>
+      </select></label>
       <label>メモ<input type="text" id="vMemo"></label>
       <div class="btnrow">
         <button type="button" id="vDelete" class="danger">削除</button>

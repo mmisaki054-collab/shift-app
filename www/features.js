@@ -43,7 +43,7 @@ const LN = () => window.Capacitor?.Plugins?.LocalNotifications;
 let notifTimer=null;
 async function scheduleNotifications(){
   const ln=LN(); if(!ln) return;
-  const s=st().settings; if(!s.notify && !s.notifyPay) return;
+  const s=st().settings; const hasEv=st().events.some(e=>e.remind); if(!s.notify && !s.notifyPay && !hasEv) return;
   try{
     const perm=await ln.checkPermissions(); if(perm.display!=='granted'){ const r=await ln.requestPermissions(); if(r.display!=='granted') return; }
     const pend=await ln.getPending(); if(pend.notifications?.length) await ln.cancel({notifications:pend.notifications.map(n=>({id:n.id}))});
@@ -60,6 +60,15 @@ async function scheduleNotifications(){
     if(s.notifyPay){
       st().workplaces.filter(w=>!w.hidden).forEach(w=>{ for(let k=0;k<=2;k++){ const d=new Date(now.getFullYear(),now.getMonth()+k,1); const pd=SN.payDate(w,d.getFullYear(),d.getMonth()+1); pd.setHours(9,0,0,0); if(pd<=now) continue; const [f,t]=SN.period(w,d.getFullYear(),d.getMonth()+1); const r=SN.sumRange(w,f,t); if(r.pay>0) list.push({id:id++, title:'今日は給料日', body:`${w.name} ${yen(r.pay)}の予定`, schedule:{at:pd}}); } });
     }
+    // 予定のリマインド
+    const limit=new Date(now); limit.setDate(limit.getDate()+60);
+    st().events.filter(e=>e.remind && e.date>=ymd(now) && e.date<=ymd(limit)).forEach(e=>{
+      const d=SN.parseD(e.date); let at=null;
+      if(e.remind==='day9'){ at=new Date(d); at.setHours(9,0,0,0); }
+      else if(e.remind==='prev20'){ at=new Date(d); at.setDate(at.getDate()-1); at.setHours(20,0,0,0); }
+      else if((e.remind==='m30'||e.remind==='m60') && !e.allDay && e.start){ const [hh,mm]=e.start.split(':').map(Number); at=new Date(d); at.setHours(hh,mm,0,0); at.setMinutes(at.getMinutes()-(e.remind==='m30'?30:60)); }
+      if(at && at>now) list.push({id:id++, title:'予定', body:(e.allDay?'終日':e.start+'〜'+e.end)+' '+e.title+(e.memo?' / '+e.memo:''), schedule:{at}});
+    });
     if(list.length) await ln.schedule({notifications:list});
   }catch(e){ console.warn('notif', e); }
 }
@@ -211,7 +220,7 @@ function renderGroup(){
 }
 
 /* ================= 更新チェック ================= */
-const APP_VERSION='1.3';
+const APP_VERSION='1.4';
 async function checkUpdate(){
   try{
     const r=await fetch('https://mmisaki054-collab.github.io/shift-app/app/version.json?t='+Date.now(), {cache:'no-store'}); if(!r.ok) return;
