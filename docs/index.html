@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>シフト手帳 ダウンロード</title>
+<style>
+body{margin:0;font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:#f5f6fa;color:#1d1f26}
+.wrap{max-width:480px;margin:0 auto;padding:28px 20px 60px}
+.icon{width:96px;height:96px;border-radius:24px;display:block;margin:0 auto 14px}
+h1{text-align:center;font-size:24px;margin:0 0 4px}
+.sub{text-align:center;color:#6b7080;margin:0 0 22px}
+.btn{display:block;background:#2f6fed;color:#fff;text-decoration:none;text-align:center;padding:16px;border-radius:14px;font-size:18px;font-weight:700;margin:10px 0}
+.btn.alt{background:#fff;color:#2f6fed;border:2px solid #2f6fed}
+.card{background:#fff;border-radius:14px;padding:16px;margin-top:18px;border:1px solid #e3e5ec}
+.card h2{font-size:16px;margin:0 0 8px}
+ol{padding-left:20px;margin:0}li{margin:6px 0;line-height:1.5}
+.warn{background:#fff6dc;border:1px solid #e8a300;border-radius:12px;padding:12px;margin-bottom:14px;font-size:14px;display:none}
+.feat{font-size:14px;color:#444;line-height:1.7}
+small{color:#6b7080}
+</style></head><body><div class="wrap">
+<img class="icon" src="icon.svg" alt="">
+<h1>シフト手帳</h1>
+<p class="sub">バイトのシフト管理と給料計算 ／ 無料・広告なし</p>
+<div class="warn" id="lineWarn">LINEの中のブラウザではダウンロードできません。下の「Chromeで開く」を押してください。</div>
+<a class="btn" id="dl" href="https://github.com/mmisaki054-collab/shift-app/releases/latest/download/shift-techo.apk">📥 Androidアプリをダウンロード</a>
+<a class="btn alt" id="openChrome" href="#" style="display:none">Chromeで開く</a>
+<div class="card"><h2>入れ方(1分)</h2><ol>
+<li>上のボタンを押す(「危険なファイル」と出たら「続行」)</li>
+<li>通知欄の「shift-techo.apk」をタップ</li>
+<li>「この提供元のアプリを許可」をONにして戻る →「インストール」</li>
+<li>「Playプロテクトでブロック」と出たら「詳細」→「インストールする」</li>
+<li>開いて、勤務先と時給を登録すれば使えます</li></ol>
+<p><small>Android専用です。iPhoneには入りません。</small></p></div>
+<div class="card"><h2>できること</h2><div class="feat">
+カレンダーに時間と金額を表示 ／ パターン1タップ入力・曜日まとめ入力 ／ 深夜・残業・交通費つき給料計算 ／ 掛け持ち対応 ／ 締め日・給料日 ／ 年収の壁の診断 ／ 希望シフトをLINEで提出 ／ 前日の通知 ／ 予定の登録 ／ グループでシフト共有
+</div></div>
+<p style="text-align:center;margin-top:20px"><small>データは端末の中だけに保存されます。</small></p>
+</div>
+<script>
+var ua=navigator.userAgent||'';
+var inApp=/Line\//i.test(ua)||/FBAN|FBAV|Instagram|Twitter/i.test(ua);
+if(inApp){document.getElementById('lineWarn').style.display='block';
+ var here=location.href.split('?')[0];
+ var a=document.getElementById('openChrome');a.style.display='block';
+ a.href=/Line\//i.test(ua)?here+'?openExternalBrowser=1':'intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end';}
+if(/iPhone|iPad/i.test(ua)){document.getElementById('dl').textContent='iPhoneには対応していません(Android専用)';document.getElementById('dl').removeAttribute('href');}
+</script></body></html>
