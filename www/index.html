@@ -14,18 +14,21 @@
   <h1 id="monthTitle">2026年10月</h1>
   <button id="nextMonth" class="iconbtn" aria-label="次の月">›</button>
   <button id="todayBtn" class="pill">今日</button>
+  <button id="shareBtn" class="iconbtn" aria-label="共有">📤</button>
 </header>
 
 <main>
   <!-- カレンダー -->
   <section id="view-cal" class="view active">
     <div id="summaryBar" class="summary"></div>
+    <div id="payInfo" class="payinfo"></div>
     <div id="quickBar" class="quickbar"></div>
+    <div id="bulkBar" class="bulkbar hidden"></div>
     <div class="weekdays">
       <div class="sun">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="sat">土</div>
     </div>
     <div id="calendar" class="calendar"></div>
-    <p class="hint">日付をタップで追加・編集。上の「まとめて入力」でパターンを選ぶと、日付タップだけで連続登録できます。</p>
+    <p class="hint" id="calHint">日付をタップで追加・編集。「まとめて入力」でパターンを選ぶと日付タップだけで連続登録できます。</p>
   </section>
 
   <!-- 給料 -->
@@ -52,11 +55,13 @@
         <option value="1500000">150万円(配偶者特別控除)</option>
         <option value="0">設定しない</option>
       </select></label>
+      <label class="row"><input type="checkbox" id="setIncludeTentative"> 「希望(未確定)」のシフトも給料に含める</label>
     </div>
     <div class="card">
       <h2>通知</h2>
       <label class="row"><input type="checkbox" id="setNotify"> 前日の夜に明日のシフトを通知</label>
-      <p class="muted">アプリを開いたときに明日のシフトをお知らせします。</p>
+      <label class="row"><input type="checkbox" id="setHolidays" checked> 祝日を表示</label>
+      <p class="muted">通知はアプリを開いたときに明日のシフトをお知らせします。</p>
     </div>
     <div class="card">
       <h2>バックアップ</h2>
@@ -74,7 +79,7 @@
       <h2>データ</h2>
       <button id="resetAll" class="danger">すべて削除</button>
     </div>
-    <p class="muted center">シフト手帳 v1.0 ／ 広告なし・データは端末内のみ</p>
+    <p class="muted center">シフト手帳 v1.1 ／ 広告なし・データは端末内のみ</p>
   </section>
 </main>
 
@@ -113,12 +118,47 @@
         <label>交通費(円)<input type="number" id="eTrans" min="0" inputmode="numeric" placeholder="勤務先の設定"></label>
       </div>
       <label>メモ<input type="text" id="eMemo" placeholder="例: レジ担当"></label>
+      <label class="row"><input type="checkbox" id="eTentative"> 希望(まだ確定していない)</label>
       <div id="ePreview" class="preview"></div>
       <div class="btnrow">
         <button type="button" id="eDelete" class="danger">削除</button>
         <button type="submit" class="primary">保存</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- 予定編集 -->
+<div id="eventDlg" class="sheet hidden">
+  <div class="sheet-inner">
+    <div class="sheet-head"><h3 id="eventTitle">予定を追加</h3><button class="iconbtn" id="eventClose">✕</button></div>
+    <form id="eventForm">
+      <input type="hidden" id="vId"><input type="hidden" id="vDate">
+      <label>予定<input type="text" id="vTitle" required placeholder="例: 友達と映画、休み希望"></label>
+      <label class="row"><input type="checkbox" id="vAllDay" checked> 終日</label>
+      <div class="grid2" id="vTimes" style="display:none">
+        <label>開始<input type="time" id="vStart"></label>
+        <label>終了<input type="time" id="vEnd"></label>
+      </div>
+      <label>メモ<input type="text" id="vMemo"></label>
+      <div class="btnrow">
+        <button type="button" id="vDelete" class="danger">削除</button>
+        <button type="submit" class="primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 共有 -->
+<div id="shareDlg" class="sheet hidden">
+  <div class="sheet-inner">
+    <div class="sheet-head"><h3>共有・提出</h3><button class="iconbtn" id="shareClose">✕</button></div>
+    <p class="muted">LINEやメールにそのまま貼れる文章を作ります。</p>
+    <button class="primary wide" id="shareMonth">今月のシフトを送る</button>
+    <button class="primary wide" id="shareWish">希望シフトを提出する(希望のみ)</button>
+    <button class="primary wide" id="shareOff">休み希望を送る(予定の日)</button>
+    <div class="btnrow"><button id="shareIcs">カレンダー用(.ics)</button><button id="copyMonth">文章をコピー</button></div>
+    <pre id="sharePreview" class="sharepre"></pre>
   </div>
 </div>
 
@@ -158,8 +198,9 @@
           <label>標準の休憩(分)<input type="number" id="wBreak" value="0" step="5" inputmode="numeric"></label>
           <label>給料の端数<select id="wRound"><option value="1">1円単位</option><option value="10">10円単位切り捨て</option><option value="100">100円単位切り捨て</option></select></label>
         </div>
+        <label>月の目標(この勤務先だけ)<input type="number" id="wTarget" min="0" inputmode="numeric" placeholder="未設定"></label>
       </details>
-      <details>
+      <details open>
         <summary>よく使うシフト(パターン)</summary>
         <div id="wPatterns"></div>
         <button type="button" id="wAddPattern" class="small">＋ パターンを追加</button>
