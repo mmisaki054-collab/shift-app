@@ -1,0 +1,6 @@
+{
+  "appId": "jp.shiftnote.app",
+  "appName": "シフト手帳",
+  "webDir": "www",
+  "android": { "allowMixedContent": false, "backgroundColor": "#f5f6fa" }
+}
