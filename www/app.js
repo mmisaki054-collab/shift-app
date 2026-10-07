@@ -133,6 +133,7 @@ function nextPayday(){
       const y=d.getFullYear(), m=d.getMonth()+1;
       const pd = payDate(w,y,m); if (pd < today) continue;
       const [from,to] = period(w,y,m); const r = sumRange(w,from,to);
+      if (r.pay<=0 && k<3) continue; // 支払額0の給料日は飛ばす
       if (!best || pd < best.date) best = { date: pd, w, pay: r.pay };
       break;
     }
@@ -363,7 +364,7 @@ function monthText(kind){
   const list = state.shifts.filter(s=>s.date>=from&&s.date<=to&&wp(s.wid)&&(kind==='wish'?s.tentative:true)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.start<b.start?-1:1);
   const multi = new Set(list.map(s=>s.wid)).size>1;
   lines.push(kind==='wish' ? `${m}月の希望シフトです。よろしくお願いします。` : `${m}月のシフト`);
-  list.forEach(s=>lines.push(`${mdw(s.date)} ${s.start}〜${s.end}${multi?' '+wp(s.wid).name:''}${s.memo?' '+s.memo:''}`));
+  list.forEach(s=>lines.push(`${mdw(s.date)} ${s.start}〜${s.end}${multi?' '+wp(s.wid).name:''}${s.memo?' '+s.memo:''}${kind==='month'&&s.tentative?'(希望)':''}`));
   if(!list.length) lines.push(kind==='wish'?'(「希望」にチェックしたシフトがありません)':'(シフトがありません)');
   if (kind==='month') lines.push(`計${list.length}日`);
   return lines.join('\n');
