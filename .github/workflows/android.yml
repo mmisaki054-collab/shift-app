@@ -3,6 +3,8 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,7 +17,15 @@ jobs:
       - run: npm ci
       - run: npx cap sync android
       - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug --no-daemon
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk shift-techo.apk
       - uses: actions/upload-artifact@v4
         with:
           name: shift-techo-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: shift-techo.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: シフト手帳 最新版
+          body: 最新のAPKです。携帯でダウンロードしてインストールしてください。
+          files: shift-techo.apk
+          prerelease: false
