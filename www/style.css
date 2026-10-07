@@ -157,3 +157,5 @@ textarea{width:100%;font-size:13px;padding:8px;border:1px solid var(--line);bord
 .gdate{width:64px;flex:none;font-weight:600;font-size:13px}.gdate.sun{color:var(--sun)}.gdate.sat{color:var(--sat)}
 .grows{flex:1;font-size:13px}
 .grow-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}.grow-row i{width:8px;height:8px;border-radius:50%;flex:none}
+
+.note{font-size:12px;color:var(--warn);background:rgba(232,163,0,.1);border-radius:8px;padding:6px 8px;margin:6px 0 0}

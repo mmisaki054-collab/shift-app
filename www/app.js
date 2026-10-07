@@ -403,6 +403,11 @@ function renderPay(){
     const [from,to] = period(w,y,m); const r = sumRange(w,from,to); grand += r.pay; grandDone += r.done; grandTent += r.tent;
     const pd = payDate(w,y,m); const fd=parseD(from), td=parseD(to);
     const wt = Number(w.target||0);
+    const mf=`${y}-${pad(m)}-01`, mt=`${y}-${pad(m)}-${pad(new Date(y,m,0).getDate())}`;
+    const outside = state.shifts.filter(s=>s.wid===w.id && s.date>=mf && s.date<=mt && (s.date<from || s.date>to) && counted(s));
+    let outNote='';
+    if (outside.length){ const after = outside.filter(s=>s.date>to).length, before = outside.length-after; const sum=outside.reduce((a,s)=>a+calcShift(s,w).pay,0);
+      outNote = `<p class="note">${m}月のうち${after?`${td.getMonth()+1}/${td.getDate()+1}以降`:''}${after&&before?'と':''}${before?`${fd.getMonth()+1}/${fd.getDate()}より前`:''}の${outside.length}件(${yen(sum)})は、締め日の関係で${after?(m%12)+1+'月分':(m-2+12)%12+1+'月分'}に入ります。</p>`; }
     cards.push(`<div class="card"><h2><span class="dot" style="background:${w.color}"></span>${esc(w.name)} <span class="muted">${fd.getMonth()+1}/${fd.getDate()}〜${td.getMonth()+1}/${td.getDate()}締め ／ 支払 ${pd.getMonth()+1}/${pd.getDate()}</span></h2>
       <table class="detail">
         <tr><td>出勤 ${r.days}日 ／ 実働 ${fmtH(r.work)}</td><td>${yen(r.base)}</td></tr>
@@ -412,6 +417,7 @@ function renderPay(){
         <tr class="total"><td>合計</td><td>${yen(r.pay)}</td></tr>
       </table>
       ${wt?`<div class="bar-wrap"><i class="${r.pay>=wt?'ok':''}" style="width:${Math.min(100,r2(r.pay/wt*100))}%"></i></div><div class="muted">この勤務先の目標 ${yen(wt)}${r.pay>=wt?' 達成！':' まで あと '+yen(wt-r.pay)}</div>`:''}
+      ${outNote}
       ${r.pay!==r.done?`<p class="muted">うち今日までの確定分 ${yen(r.done)}</p>`:''}
       ${r.tent?`<p class="muted">希望(未確定)分 ${yen(r.tent)} ${state.settings.includeTentative?'を含む':'は含まず'}</p>`:''}</div>`);
   });
