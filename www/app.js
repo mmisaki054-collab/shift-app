@@ -292,7 +292,9 @@ function closeSheet(){ selDate=null; $('#dayPanel').classList.add('hidden'); $$(
 
 /* ---------- shift edit ---------- */
 function openEdit(ds, s){
-  const sel = $('#eWid'); sel.innerHTML = state.workplaces.filter(w=>!w.hidden || (s&&s.wid===w.id)).map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+  const avail = state.workplaces.filter(w=>!w.hidden || (s&&s.wid===w.id));
+  if (!avail.length){ toast('表示中の勤務先がありません。勤務先タブで「表示」にしてください'); return; }
+  const sel = $('#eWid'); sel.innerHTML = avail.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
   $('#editTitle').textContent = s ? 'シフトを編集' : 'シフトを追加';
   $('#eId').value = s?s.id:''; $('#eDate').value = ds;
   const last = !s && state.shifts.filter(x=>x.date<ds).sort((a,b)=>a.date<b.date?1:-1)[0];
@@ -379,7 +381,7 @@ function monthText(kind){
 let shareText='';
 async function doShare(text){
   shareText=text; $('#sharePreview').textContent=text;
-  if (navigator.share) { try { await navigator.share({title:'シフト', text}); return; } catch(e){} }
+  if (navigator.share) { try { await navigator.share({title:'シフト', text}); return; } catch(e){ if (e?.name==='AbortError') return; } }
   await copyText(text);
 }
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast('コピーしました。LINEなどに貼り付けてください'); }catch{ toast('下の文章を長押しでコピーしてください'); } }
@@ -536,7 +538,15 @@ function exportIcs(){
 }
 $('#exportIcs').onclick=exportIcs;
 $('#resetAll').onclick=()=>{ if(!confirm('すべてのデータを削除しますか？')) return; if(!confirm('本当に削除しますか？元に戻せません。')) return; localStorage.removeItem(KEY); state=load(); render(); };
-function download(name, text, type){
+async function download(name, text, type){
+  const P = window.Capacitor?.Plugins;
+  if (P?.Filesystem && P?.Share) {
+    try {
+      const r = await P.Filesystem.writeFile({ path: name, data: text, directory: 'CACHE', encoding: 'utf8' });
+      await P.Share.share({ title: name, files: [r.uri] });
+    } catch(e){ if (e?.message && !/cancel/i.test(e.message)) toast('保存できませんでした: '+e.message); }
+    return;
+  }
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
 }
 
