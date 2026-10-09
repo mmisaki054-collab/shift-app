@@ -195,7 +195,7 @@ function renderCalendar(){
   if (quickPattern){
     const w=wp(quickPattern.wid), p=quickPattern.pat;
     bb.classList.remove('hidden');
-    bb.innerHTML = `<div><b>${esc(w.name)} ${esc(p.name)} ${shortT(p.start)}-${shortT(p.end)}</b> を入力中。日付をタップ、または曜日を選んで一括:</div>
+    bb.innerHTML = `<div><b>${esc(w.name)} ${esc(p.name)} ${shortT(p.start)}-${shortT(p.end)}</b> を入力中。日付をタップで追加(もう一度タップで外す)。曜日でまとめて入れるなら下から:</div>
       <div class="dows">${[...DOW].map((d,i)=>`<button type="button" data-d="${i}" class="${bulkDows.has(i)?'on':''}">${d}</button>`).join('')}</div>
       <div class="btnrow"><button type="button" id="bulkApply" class="primary">選んだ曜日に一括追加</button><button type="button" id="bulkEnd">終了</button></div>`;
     bb.querySelectorAll('.dows button').forEach(b=>b.onclick=()=>{ const i=Number(b.dataset.d); bulkDows.has(i)?bulkDows.delete(i):bulkDows.add(i); b.classList.toggle('on'); });
@@ -231,6 +231,8 @@ function renderCalendar(){
     el.innerHTML = html;
     el.onclick = () => {
       if (quickPattern){ const w=wp(quickPattern.wid); const p=quickPattern.pat; snapshot();
+        const dup=state.shifts.find(s=>s.date===ds&&s.wid===w.id&&s.start===p.start&&s.end===p.end);
+        if (dup){ state.shifts=state.shifts.filter(s=>s!==dup); save(); renderCalendar(); renderPay(); toast(`${d.getMonth()+1}/${d.getDate()} の ${p.name} を外しました`, true); return; }
         state.shifts.push({id:uid(), wid:w.id, date:ds, start:p.start, end:p.end, breakMin:p.breakMin ?? w.breakMin ?? 0, memo:''});
         save(); renderCalendar(); renderPay(); toast(`${d.getMonth()+1}/${d.getDate()} に ${p.name} を追加`, true); return; }
       openSheet(ds);

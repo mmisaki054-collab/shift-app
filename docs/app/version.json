@@ -1,6 +1,6 @@
 {
- "version": "1.4",
+ "version": "1.5",
  "apk": "https://github.com/mmisaki054-collab/shift-app/releases/latest/download/shift-techo.apk",
  "page": "https://mmisaki054-collab.github.io/shift-app/",
- "note": "予定のリマインダー、画面位置の修正"
+ "note": "署名を固定(以後は上書き更新OK)、まとめて入力の付け外し、予定のリマインダー"
 }

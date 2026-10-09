@@ -220,7 +220,7 @@ function renderGroup(){
 }
 
 /* ================= 更新チェック ================= */
-const APP_VERSION='1.4';
+const APP_VERSION='1.5';
 async function checkUpdate(){
   try{
     const r=await fetch('https://mmisaki054-collab.github.io/shift-app/app/version.json?t='+Date.now(), {cache:'no-store'}); if(!r.ok) return;
